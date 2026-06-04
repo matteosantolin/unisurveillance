@@ -1,0 +1,88 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper: true se l'utente ha un documento in /admins/{uid}.
+    function isAdmin() {
+      return request.auth != null
+             && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // /users/{uid}: mirror dell'identita Firebase Auth (uid -> email).
+    // Scritto dal client al login per supportare la risoluzione uid -> email
+    // nella UI (es. lista regole d'allarme). Solo l'utente stesso o un
+    // admin possono leggere; chiunque puo' scrivere SOLO il proprio doc.
+    match /users/{uid} {
+      allow get: if request.auth != null
+                 && (request.auth.uid == uid || isAdmin());
+      allow list: if isAdmin();
+      allow create, update: if request.auth != null
+                            && request.auth.uid == uid
+                            && request.resource.data.keys().hasOnly(["email", "last_login"])
+                            && request.resource.data.email is string;
+      allow delete: if false;
+    }
+
+    // /admins/{uid}: gestione manuale da console Firebase.
+    // Read consentito agli autenticati (serve a useAuth per check del proprio
+    // documento). Write proibita dal client.
+    match /admins/{uid} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+
+    // /detections/{doc}: scritte solo dal server (Admin SDK).
+    // Lettura: owner_uid del documento deve combaciare con l'uid loggato,
+    // oppure l'utente è admin.
+    match /detections/{doc} {
+      allow get: if request.auth != null
+                 && (resource.data.owner_uid == request.auth.uid || isAdmin());
+      // List rule applicata per-doc: la query deve filtrare per owner_uid
+      // (non-admin) altrimenti Firestore restituisce errore al primo doc
+      // non-owned. Admin bypassa il filtro perché `isAdmin()` passa per ogni
+      // documento.
+      allow list: if request.auth != null
+                  && (resource.data.owner_uid == request.auth.uid || isAdmin());
+      allow write: if false;
+    }
+
+    // /alert_rules/{doc}: solo owner può CRUD; admin può leggere tutto.
+    match /alert_rules/{doc} {
+      allow read: if request.auth != null
+                  && (resource.data.owner_uid == request.auth.uid || isAdmin());
+      allow create: if request.auth != null
+                    && request.resource.data.owner_uid == request.auth.uid;
+      allow update, delete: if request.auth != null
+                            && resource.data.owner_uid == request.auth.uid;
+    }
+
+    // /cameras/{doc}: ogni camera è "rivendicata" dal primo utente che la
+    // associa al proprio uid (first-write-wins). Una volta assegnato,
+    // owner_uid è immutabile dal client.
+    match /cameras/{doc} {
+      // Get: l'utente loggato può leggere la propria camera, una camera
+      // non ancora esistente (per claim) oppure tutto se admin.
+      allow get: if request.auth != null
+                 && (resource == null
+                     || resource.data.owner_uid == request.auth.uid
+                     || isAdmin());
+      // List: per-doc, la query deve filtrare per owner_uid (non-admin).
+      allow list: if request.auth != null
+                  && (resource.data.owner_uid == request.auth.uid || isAdmin());
+      // Create: solo come proprietario, whitelist [camera_id, owner_uid].
+      allow create: if request.auth != null
+                    && request.resource.data.owner_uid == request.auth.uid
+                    && request.resource.data.keys().hasOnly(["camera_id", "owner_uid"]);
+      // Update: solo proprietario, owner_uid immutabile, camera_id immutabile;
+      // last_seen scrivibile solo dal server (Admin SDK bypassa rules).
+      allow update: if request.auth != null
+                    && request.resource.data.owner_uid == request.auth.uid
+                    && resource.data.owner_uid == request.auth.uid
+                    && request.resource.data.keys().hasOnly(["camera_id", "owner_uid", "last_seen"])
+                    && request.resource.data.camera_id == resource.data.camera_id
+                    && (!("last_seen" in request.resource.data)
+                        || request.resource.data.last_seen == resource.data.last_seen);
+      allow delete: if false;
+    }
+  }
+}

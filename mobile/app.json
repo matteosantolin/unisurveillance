@@ -1,0 +1,60 @@
+{
+  "expo": {
+    "name": "UniSurveillance",
+    "slug": "uni-surveillance",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "unisurveillance",
+    "userInterfaceStyle": "automatic",
+    "owner": "matteosantolin",
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Permesso per usare la fotocamera per la sorveglianza"
+        }
+      ]
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.matteosantolin.unisurveillance"
+    },
+    "android": {
+      "package": "com.matteosantolin.unisurveillance",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0B0B0E"
+      },
+      "permissions": [
+        "CAMERA",
+        "INTERNET"
+      ]
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "newArchEnabled": true,
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "8528684f-4d04-4439-a7d4-9a14a09902ef"
+      },
+      "firebase": {
+        "apiKey": "AIzaSyDfElrbBfV2HdqfFOhxSfAODkJBiSfsGlA",
+        "authDomain": "unisurveillance.firebaseapp.com",
+        "projectId": "unisurveillance",
+        "storageBucket": "unisurveillance.firebasestorage.app",
+        "messagingSenderId": "496961439316",
+        "appId": "1:496961439316:web:c534141811998a6fe00fc1"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/8528684f-4d04-4439-a7d4-9a14a09902ef"
+    }
+  }
+}

@@ -1,0 +1,15 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Foto pubbliche in lettura (Storage Admin SDK le marca make_public()).
+    // Scrittura solo da server tramite Admin SDK, che bypassa queste regole.
+    match /photos/{allPaths=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+    // Default deny per qualsiasi altro path.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

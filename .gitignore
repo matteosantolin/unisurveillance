@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+dist/
+.env
+
+# Node / React
+node_modules/
+dist/
+.env
+.env.local
+
+# Expo / RN
+.expo/
+.expo-shared/
+
+# Modelli AI (troppo grandi per git)
+*.pt
+*.onnx
+
+# Firebase service account (NON committare mai)
+*serviceAccount*.json
+firebase-adminsdk*.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Firebase CLI cache
+.firebase/
+
+# Claude Code agent
+.claude/
+
+# Temp files
+lifecycle.json
+*.tmp
+
+# Pytest
+.pytest_cache/
